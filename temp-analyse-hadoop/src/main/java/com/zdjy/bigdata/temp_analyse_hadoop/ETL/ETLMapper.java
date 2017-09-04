@@ -45,6 +45,10 @@ public class ETLMapper extends Mapper<LongWritable,Text, Text, NullWritable>{
 		 * 截取城市，通过map获取省份
 		 */
 		String[] split = string.split("\\s+",5);
+		if(split.length<4){
+			context.getCounter("missing",split[0]).increment(1);
+			return;
+		}
 		//获取城市
 		String city = split[0];
 		//获取省份
@@ -57,8 +61,14 @@ public class ETLMapper extends Mapper<LongWritable,Text, Text, NullWritable>{
 		int avg=(max+min)/2;
 		
 		//黑龙江	阿城    2011-01-01 -12 -25	13 -18	 晴 西北风~西南风 3-4级~微风
-		String result=province+"\t"+city+"\t"+split[1]+"\t"+max+"\t"+min+"\t"+
-		diff+"\t"+avg+"\t"+split[4];
+		String result=null;
+		if(split.length==4){
+			result=province+"\t"+city+"\t"+split[1]+"\t"+max+"\t"+min+"\t"+
+					diff+"\t"+avg;
+		}else{
+			result=province+"\t"+city+"\t"+split[1]+"\t"+max+"\t"+min+"\t"+
+					diff+"\t"+avg+"\t"+split[4];
+		}
 		//写出
 		context.write(new Text(result),NullWritable.get());//NullWritable是单例模式
 		context.getCounter("etl","map").increment(1);
