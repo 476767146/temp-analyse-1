@@ -8,7 +8,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 
 
 /**
- * 聚合函数
+ *聚合函数
  *同一个城市同一个月份的数据聚合到了一块
  *
  *
