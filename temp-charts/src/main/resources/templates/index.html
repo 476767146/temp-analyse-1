@@ -31,55 +31,98 @@
 </head>
 
 <body>
+	<select id="province"></select>
+	<select id="city"></select>
 	<div id="aa" style="min-width: 400px; height: 400px"></div>
-
 	<script>
-	$(function () {
-	    $.get('/countCityMonth/findByCity?city=上海', function (data) {
-	    	var ranges = [];
-			$.each(data, function(index, value) {
-				var range = [];
-				var year = value.year;
-				var month = value.month;
-				var max = value.max;
-				var min = value.min;
-				var timestamp = Date.parse(new Date(year + "-" + month));
-				range.push(timestamp);
-				range.push(min);
-				range.push(max);
-				ranges.push(range);
+		$(function() {
+			$.get('/area/findProvince', function(data) {
+				var html = "<option>请选择</option>"
+				$.each(data, function(index, value) {
+					html += "<option value='"+value+"'>" + value + "</option>";
+				});
+				$("#province").html(html);
+				$("#city").html("<option>请选择</option>");
 			});
-	        $('#aa').highcharts({
-	            chart: {
-	                type: 'arearange',
-	                zoomType: 'x'
-	            },
-	            title: {
-	                text: '某地白天温度变化'
-	            },
-	            xAxis: {
-	                type: 'datetime'
-	            },
-	            yAxis: {
-	                title: {
-	                    text: null
-	                }
-	            },
-	            tooltip: {
-	                crosshairs: true,
-	                shared: true,
-	                valueSuffix: '°C'
-	            },
-	            legend: {
-	                enabled: false
-	            },
-	            series: [{
-	                name: '气温',
-	                data: ranges
-	            }]
-	        });
-	    });
-	});
+			$("#province")
+					.change(
+							function() {
+								$("#city").html("<option>请选择</option>");
+								if ($(this).val() == null)
+									return;
+								$
+										.get(
+												'/area/findByProvince?province='
+														+ $(this).val(),
+												function(data) {
+													var html = "<option>请选择</option>"
+													$
+															.each(
+																	data,
+																	function(
+																			index,
+																			value) {
+																		html += "<option value='"+value.city+"'>"
+																				+ value.city
+																				+ "</option>";
+																	});
+													$("#city").html(html);
+												});
+							});
+
+			$("#city").change(function() {
+				if ($(this).val() == null)
+					return;
+				getCity($(this).val());
+			});
+			getCity("北京")
+		});
+		function getCity(city) {
+			$.get('/countCityMonth/findByCity?city='+city, function(data) {
+				var ranges = [];
+				$.each(data, function(index, value) {
+					var range = [];
+					var year = value.year;
+					var month = value.month;
+					var max = value.max;
+					var min = value.min;
+					var timestamp = Date.parse(new Date(year + "-" + month));
+					range.push(timestamp);
+					range.push(min);
+					range.push(max);
+					ranges.push(range);
+				});
+				$('#aa').highcharts({
+					chart : {
+						type : 'arearange',
+						zoomType : 'x'
+					},
+					title : {
+						text : city+'历史每月最高气温最低气温'
+					},
+					xAxis : {
+						type : 'datetime'
+					},
+					yAxis : {
+						title : {
+							text : null
+						}
+					},
+					tooltip : {
+						crosshairs : true,
+						shared : true,
+						valueSuffix : '°C'
+					},
+					legend : {
+						enabled : false
+					},
+					series : [ {
+						name : '气温',
+						data : ranges
+					} ]
+				});
+			});
+		}
 		/* $(function() {
 			$.get("/countCityMonth/findByCity?city=上海", function(data) {
 				alert(data);
